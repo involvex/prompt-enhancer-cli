@@ -16,7 +16,7 @@
 		"url": "https://github.com/sponsors/involvex"
 	},
 	"repository": {
-		"url": "https://github.com/involvex/prompt-enhancer-cli.git",
+		"url": "git+https://github.com/involvex/prompt-enhancer-cli.git",
 		"type": "git"
 	},
 	"engines": {
