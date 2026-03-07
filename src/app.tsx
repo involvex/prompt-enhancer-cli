@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import {Box, Text} from 'ink';
-import SelectInput from 'ink-select-input';
+import SelectInput from './components/select-input.js';
 import EnhancePromptComponent from './components/enhance-prompt.js';
 import SettingsComponent from './components/settings.js';
 import HistoryComponent from './components/history-viewer.js';

@@ -1,34 +1,55 @@
 /**
  * GitHub Copilot provider implementation
- * Uses OpenAI API (compatible with Copilot)
+ * Uses OpenAI-compatible API.
+ * Auto-detects OAuth token from ~/.copilot/ and other well-known paths;
+ * falls back to manually-configured apiKey.
  */
 
 import {OpenAI} from 'openai';
 import {Provider} from './base.js';
 import type {EnhancementOptions, ProviderCredentials} from '../types/index.js';
+import {getCopilotToken} from '../utils/copilot-auth.js';
 
 export class CopilotProvider extends Provider {
-	private client: OpenAI;
+	private client!: OpenAI;
+	private initialized = false;
 
 	constructor(credentials: ProviderCredentials) {
 		super('copilot', credentials, 'gpt-4o');
+		// Async init happens in ensureInitialized() before first use
+	}
 
-		if (!credentials.apiKey) {
-			throw new Error('Copilot provider requires an API key');
+	private async ensureInitialized(): Promise<void> {
+		if (this.initialized) return;
+
+		let apiKey = this.credentials.apiKey;
+
+		// Try auto-detection if no key was manually provided
+		if (!apiKey || this.credentials.useOAuth) {
+			const autoToken = await getCopilotToken();
+			if (autoToken) {
+				apiKey = autoToken;
+			}
 		}
 
-		const config: ConstructorParameters<typeof OpenAI>[0] = {
-			apiKey: credentials.apiKey,
-		};
+		if (!apiKey) {
+			throw new Error(
+				'Copilot provider: no API key found. Set an API key in settings or install GitHub Copilot / GitHub CLI so a token can be auto-detected.',
+			);
+		}
 
-		if (credentials.endpoint) {
-			config.baseURL = credentials.endpoint;
+		const config: ConstructorParameters<typeof OpenAI>[0] = {apiKey};
+
+		if (this.credentials.endpoint) {
+			config.baseURL = this.credentials.endpoint;
 		}
 
 		this.client = new OpenAI(config);
+		this.initialized = true;
 	}
 
 	async enhance(prompt: string, options?: EnhancementOptions): Promise<string> {
+		await this.ensureInitialized();
 		const systemPrompt =
 			options?.systemPrompt ||
 			'You are an expert at enhancing and improving user prompts for LLMs. Analyze the given prompt and return an improved version that is clearer, more specific, and more likely to produce better results. Return ONLY the enhanced prompt, no explanations.';
@@ -62,6 +83,7 @@ export class CopilotProvider extends Provider {
 		prompt: string,
 		options?: EnhancementOptions,
 	): AsyncGenerator<string, void, unknown> {
+		await this.ensureInitialized();
 		const systemPrompt =
 			options?.systemPrompt ||
 			'You are an expert at enhancing and improving user prompts for LLMs. Analyze the given prompt and return an improved version that is clearer, more specific, and more likely to produce better results. Return ONLY the enhanced prompt, no explanations.';
@@ -92,12 +114,12 @@ export class CopilotProvider extends Provider {
 	}
 
 	async getAvailableModels(): Promise<string[]> {
-		// Azure OpenAI models available for Copilot
-		return ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'];
+		return ['gpt-4o', 'gpt-4o-mini', 'gpt-4.1', 'claude-sonnet-4', 'o3'];
 	}
 
 	async validateCredentials(): Promise<boolean> {
 		try {
+			await this.ensureInitialized();
 			await this.client.chat.completions.create({
 				messages: [
 					{

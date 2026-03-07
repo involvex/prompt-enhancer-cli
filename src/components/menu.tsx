@@ -1,5 +1,5 @@
 import {Box, Text} from 'ink';
-import SelectInput from 'ink-select-input';
+import SelectInput from './select-input.js';
 
 export interface MenuItem {
 	label: string;

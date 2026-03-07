@@ -1,6 +1,6 @@
 import {useState, useEffect} from 'react';
 import {Box, Text} from 'ink';
-import SelectInput from 'ink-select-input';
+import SelectInput from './select-input.js';
 import {HistoryManager} from '../lib/history/manager.js';
 import type {HistoryEntry} from '../lib/config/schema.js';
 

@@ -10,6 +10,7 @@ export const ProviderConfigSchema = z.object({
 	model: z.string().optional(),
 	endpoint: z.string().url().optional(),
 	enabled: z.boolean(),
+	useOAuth: z.boolean().optional(),
 });
 
 export const AppConfigSchema = z.object({

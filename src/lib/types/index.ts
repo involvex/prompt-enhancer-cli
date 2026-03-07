@@ -26,4 +26,5 @@ export interface ProviderCredentials {
 	apiKey: string;
 	endpoint?: string;
 	project?: string;
+	useOAuth?: boolean;
 }

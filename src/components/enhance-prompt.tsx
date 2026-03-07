@@ -1,7 +1,6 @@
 import {useState, useEffect} from 'react';
 import {Box, Text} from 'ink';
 import TextInput from 'ink-text-input';
-import SelectInput from 'ink-select-input';
 import {ConfigManager} from '../lib/config/manager.js';
 import {HistoryManager} from '../lib/history/manager.js';
 import {EnhancementEngine} from '../lib/enhancement/engine.js';
@@ -11,15 +10,14 @@ interface EnhancePromptProps {
 	onBack: () => void;
 }
 
-type State = 'input' | 'provider-select' | 'enhancing' | 'complete' | 'error';
+type State = 'input' | 'enhancing' | 'complete' | 'error';
 
 export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 	const [state, setState] = useState<State>('input');
 	const [prompt, setPrompt] = useState('');
 	const [enhancedText, setEnhancedText] = useState('');
 	const [error, setError] = useState('');
-	const [selectedProvider, setSelectedProvider] = useState('');
-	const [availableProviders, setAvailableProviders] = useState<string[]>([]);
+	const [defaultProvider, setDefaultProvider] = useState('kilo');
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
@@ -27,8 +25,8 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 			try {
 				const configManager = new ConfigManager();
 				await configManager.load();
-				const enabled = configManager.getEnabledProviders();
-				setAvailableProviders(enabled.length > 0 ? enabled : []);
+				const cfg = configManager.getConfig();
+				setDefaultProvider(cfg.defaultProvider ?? 'kilo');
 				setLoading(false);
 			} catch (_err) {
 				setError('Failed to load configuration');
@@ -42,25 +40,8 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 			setError('Prompt cannot be empty');
 			return;
 		}
-
-		if (availableProviders.length === 0) {
-			setError(
-				'No providers configured. Please configure a provider in settings.',
-			);
-			return;
-		}
-
-		if (availableProviders.length === 1) {
-			const provider = availableProviders[0];
-			if (!provider) {
-				setError('No valid provider selected');
-				return;
-			}
-			setSelectedProvider(provider);
-			enhancePrompt(provider);
-		} else {
-			setState('provider-select');
-		}
+		setError('');
+		void enhancePrompt(defaultProvider);
 	};
 
 	const enhancePrompt = async (provider: string) => {
@@ -119,29 +100,11 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 		);
 	}
 
-	if (state === 'provider-select') {
-		const providerItems = availableProviders.map(p => ({label: p, value: p}));
-		return (
-			<Box flexDirection="column" paddingX={2}>
-				<Text bold color="cyan">
-					Select provider:
-				</Text>
-				<Box marginY={1}>
-					<SelectInput
-						items={providerItems}
-						onSelect={item => enhancePrompt(item.value)}
-						initialIndex={0}
-					/>
-				</Box>
-			</Box>
-		);
-	}
-
 	if (state === 'enhancing') {
 		return (
 			<Box flexDirection="column" paddingX={2}>
 				<Text bold color="cyan">
-					Enhancing with {selectedProvider}...
+					Enhancing with {defaultProvider}...
 				</Text>
 				<Box marginY={1}>
 					<Text>{enhancedText}</Text>

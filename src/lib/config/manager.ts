@@ -8,27 +8,27 @@ import type {AppConfig} from './schema.js';
 import {AppConfigSchema} from './schema.js';
 import {CONFIG_DIR, CONFIG_FILE} from '../utils/paths.js';
 
+import {KILO_DEFAULT_ENDPOINT, KILO_DEFAULT_MODEL} from '../providers/kilo.js';
+
 const DEFAULT_CONFIG: AppConfig = {
 	version: '1.0.0',
-	defaultProvider: 'gemini',
-	defaultModel: 'gemini-2.5-flash',
+	defaultProvider: 'kilo',
+	defaultModel: KILO_DEFAULT_MODEL,
 	streaming: true,
 	saveHistory: true,
 	providers: {
 		gemini: {
 			name: 'gemini',
 			enabled: false,
-			// apiKey will be set by user in settings
 		},
 		copilot: {
 			name: 'copilot',
 			enabled: false,
-			// apiKey will be set by user in settings
 		},
 		kilo: {
 			name: 'kilo',
-			enabled: false,
-			endpoint: 'https://api.kilo.run/openai/v1/chat/completions',
+			enabled: true,
+			endpoint: KILO_DEFAULT_ENDPOINT,
 		},
 	},
 	temperature: 0.7,

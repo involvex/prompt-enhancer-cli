@@ -1,11 +1,28 @@
 /**
  * Kilo-gateway provider implementation
- * Kilo is a free and open LLM router that uses free models
- * API: https://kilo.run/
+ * Kilo is an LLM router with free and paid models
+ * API: https://kilo.ai/  — free models still require an API key from https://app.kilo.ai
  */
 
 import {Provider} from './base.js';
 import type {EnhancementOptions, ProviderCredentials} from '../types/index.js';
+
+export const KILO_MODELS = [
+	{id: 'minimax/minimax-m2.5', name: 'MiniMax M2.5 (recommended)'},
+	{id: 'minimax/minimax-m2.1', name: 'MiniMax M2.1'},
+	{id: 'minimax/minimax', name: 'MiniMax'},
+	{id: 'arcee-ai/trinity-large', name: 'Arcee AI Trinity Large'},
+	{id: 'z-ai/glm-4-7-flash-preview', name: 'Z.ai GLM 4.7 Flash Preview (free)'},
+	{id: 'qwen/qwen3-coder-next', name: 'Qwen3 Coder Next'},
+	{id: 'qwen/qwen3-coder-480b-a35b', name: 'Qwen3 Coder 480B A35B'},
+	{id: 'xai/grok-code-fast-1', name: 'xAI Grok Code Fast 1'},
+	{id: 'kwaipilot/kat-coder-pro-v1', name: 'KwaiPilot KAT-Coder-Pro V1'},
+	{id: 'deepseek/deepseek-chat-v3.1', name: 'DeepSeek V3.1 Terminus'},
+];
+
+export const KILO_DEFAULT_ENDPOINT =
+	'https://api.kilo.ai/api/gateway/chat/completions';
+export const KILO_DEFAULT_MODEL = 'minimax/minimax-m2.5';
 
 interface KiloMessage {
 	role: 'user' | 'assistant' | 'system';
@@ -20,57 +37,59 @@ interface KiloRequestBody {
 	stream?: boolean;
 }
 
+const SYSTEM_PROMPT =
+	'You are an expert at enhancing and improving user prompts for LLMs. Analyze the given prompt and return an improved version that is clearer, more specific, and more likely to produce better results. Return ONLY the enhanced prompt, no explanations.';
+
+async function throwOnError(response: Response): Promise<never> {
+	let body = '';
+	try {
+		body = await response.text();
+	} catch {
+		// ignore
+	}
+	throw new Error(
+		`Kilo API error: ${response.status} ${response.statusText}${body ? ` — ${body}` : ''}`,
+	);
+}
+
 export class KiloProvider extends Provider {
 	private endpoint: string;
 
 	constructor(credentials: ProviderCredentials) {
-		super('kilo', credentials, 'auto');
-
-		// Kilo is free and may not require API key, but can accept one
-		this.endpoint =
-			credentials.endpoint || 'https://api.kilo.run/openai/v1/chat/completions';
+		super('kilo', credentials, KILO_DEFAULT_MODEL);
+		this.endpoint = credentials.endpoint || KILO_DEFAULT_ENDPOINT;
 	}
 
-	async enhance(prompt: string, options?: EnhancementOptions): Promise<string> {
-		const systemPrompt =
-			options?.systemPrompt ||
-			'You are an expert at enhancing and improving user prompts for LLMs. Analyze the given prompt and return an improved version that is clearer, more specific, and more likely to produce better results. Return ONLY the enhanced prompt, no explanations.';
-
-		const body: KiloRequestBody = {
-			messages: [
-				{
-					role: 'system',
-					content: systemPrompt,
-				},
-				{
-					role: 'user',
-					content: `Original prompt:\n${prompt}`,
-				},
-			],
-			model: options?.model || this.defaultModel,
-			temperature: options?.temperature || 0.7,
-			max_tokens: options?.maxTokens || 1000,
-			stream: false,
-		};
-
+	private buildHeaders(): Record<string, string> {
 		const headers: Record<string, string> = {
 			'Content-Type': 'application/json',
 		};
-
-		if (this.credentials.apiKey && this.credentials.apiKey !== 'free') {
+		if (this.credentials.apiKey) {
 			headers['Authorization'] = `Bearer ${this.credentials.apiKey}`;
 		}
+		return headers;
+	}
+
+	async enhance(prompt: string, options?: EnhancementOptions): Promise<string> {
+		const body: KiloRequestBody = {
+			messages: [
+				{role: 'system', content: options?.systemPrompt || SYSTEM_PROMPT},
+				{role: 'user', content: `Original prompt:\n${prompt}`},
+			],
+			model: options?.model || this.defaultModel,
+			temperature: options?.temperature ?? 0.7,
+			max_tokens: options?.maxTokens ?? 1000,
+			stream: false,
+		};
 
 		const response = await fetch(this.endpoint, {
 			method: 'POST',
-			headers,
+			headers: this.buildHeaders(),
 			body: JSON.stringify(body),
 		});
 
 		if (!response.ok) {
-			throw new Error(
-				`Kilo API error: ${response.status} ${response.statusText}`,
-			);
+			await throwOnError(response);
 		}
 
 		const data = (await response.json()) as {
@@ -78,11 +97,7 @@ export class KiloProvider extends Provider {
 		};
 
 		const content = data.choices[0]?.message?.content;
-
-		if (!content) {
-			throw new Error('No response received from Kilo');
-		}
-
+		if (!content) throw new Error('No response received from Kilo');
 		return content.trim();
 	}
 
@@ -90,50 +105,28 @@ export class KiloProvider extends Provider {
 		prompt: string,
 		options?: EnhancementOptions,
 	): AsyncGenerator<string, void, unknown> {
-		const systemPrompt =
-			options?.systemPrompt ||
-			'You are an expert at enhancing and improving user prompts for LLMs. Analyze the given prompt and return an improved version that is clearer, more specific, and more likely to produce better results. Return ONLY the enhanced prompt, no explanations.';
-
 		const body: KiloRequestBody = {
 			messages: [
-				{
-					role: 'system',
-					content: systemPrompt,
-				},
-				{
-					role: 'user',
-					content: `Original prompt:\n${prompt}`,
-				},
+				{role: 'system', content: options?.systemPrompt || SYSTEM_PROMPT},
+				{role: 'user', content: `Original prompt:\n${prompt}`},
 			],
 			model: options?.model || this.defaultModel,
-			temperature: options?.temperature || 0.7,
-			max_tokens: options?.maxTokens || 1000,
+			temperature: options?.temperature ?? 0.7,
+			max_tokens: options?.maxTokens ?? 1000,
 			stream: true,
 		};
 
-		const headers: Record<string, string> = {
-			'Content-Type': 'application/json',
-		};
-
-		if (this.credentials.apiKey && this.credentials.apiKey !== 'free') {
-			headers['Authorization'] = `Bearer ${this.credentials.apiKey}`;
-		}
-
 		const response = await fetch(this.endpoint, {
 			method: 'POST',
-			headers,
+			headers: this.buildHeaders(),
 			body: JSON.stringify(body),
 		});
 
 		if (!response.ok) {
-			throw new Error(
-				`Kilo API error: ${response.status} ${response.statusText}`,
-			);
+			await throwOnError(response);
 		}
 
-		if (!response.body) {
-			throw new Error('No response stream from Kilo');
-		}
+		if (!response.body) throw new Error('No response stream from Kilo');
 
 		const reader = response.body.getReader();
 		const decoder = new TextDecoder();
@@ -150,19 +143,16 @@ export class KiloProvider extends Provider {
 				for (let i = 0; i < lines.length - 1; i++) {
 					const line = lines[i]!;
 					if (line.startsWith('data: ')) {
-						const data = line.slice(6);
-						if (data === '[DONE]') break;
-
+						const data = line.slice(6).trim();
+						if (data === '[DONE]') return;
 						try {
 							const parsed = JSON.parse(data) as {
 								choices: Array<{delta: {content?: string}}>;
 							};
 							const content = parsed.choices[0]?.delta?.content;
-							if (content) {
-								yield content;
-							}
+							if (content) yield content;
 						} catch {
-							// Ignore parse errors
+							// Ignore malformed SSE chunks
 						}
 					}
 				}
@@ -175,38 +165,21 @@ export class KiloProvider extends Provider {
 	}
 
 	async getAvailableModels(): Promise<string[]> {
-		// Kilo supports various free models
-		return ['auto', 'gpt-3.5-turbo', 'gpt-4o-mini', 'claude-3-5-sonnet'];
+		return KILO_MODELS.map(m => m.id);
 	}
 
 	async validateCredentials(): Promise<boolean> {
 		try {
-			const body: KiloRequestBody = {
-				messages: [
-					{
-						role: 'user',
-						content: 'test',
-					},
-				],
-				model: 'auto',
-				max_tokens: 1,
-				stream: false,
-			};
-
-			const headers: Record<string, string> = {
-				'Content-Type': 'application/json',
-			};
-
-			if (this.credentials.apiKey && this.credentials.apiKey !== 'free') {
-				headers['Authorization'] = `Bearer ${this.credentials.apiKey}`;
-			}
-
 			const response = await fetch(this.endpoint, {
 				method: 'POST',
-				headers,
-				body: JSON.stringify(body),
+				headers: this.buildHeaders(),
+				body: JSON.stringify({
+					messages: [{role: 'user', content: 'test'}],
+					model: KILO_DEFAULT_MODEL,
+					max_tokens: 1,
+					stream: false,
+				} satisfies KiloRequestBody),
 			});
-
 			return response.ok;
 		} catch {
 			return false;
