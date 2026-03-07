@@ -32,8 +32,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
         with:
-          body_path: ${{ github.workspace }}-CHANGELOG.md
-          body: ${{ github.workspace }}-CHANGELOG
+          body_path: ${{ github.workspace }}/CHANGELOG.md
+          body: ${{ github.workspace }}/CHANGELOG.md
           files: dist/prompt-enhancer.exe \
             README.md \
             CHANGELOG.md
