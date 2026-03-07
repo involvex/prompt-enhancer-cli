@@ -8,7 +8,7 @@ export default function About() {
 			<Text>Version: {pkg.version}</Text>
 			<Text>Author: {pkg.author}</Text>
 			<Text>License: {pkg.license}</Text>
-			<Text>Homepage: {pkg.repository.url}</Text>
+			<Text>Repository: {pkg.repository.url}</Text>
 		</Box>
 	);
 }

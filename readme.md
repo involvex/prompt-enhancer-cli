@@ -65,33 +65,33 @@ $ prompt-enhancer -p "Your prompt here"
 
    ```json
    {
-    "version": "0.1.0",
-    "providers": {
-     "gemini": {
-      "name": "gemini",
-      "apiKey": "your-api-key",
-      "model": "gemini-2.5-flash",
-      "enabled": true
-     },
-     "copilot": {
-      "name": "copilot",
-      "apiKey": "your-api-key",
-      "model": "gpt-4o",
-      "enabled": true
-     },
-     "kilo": {
-      "name": "kilo",
-      "apiKey": "your-api-key",
-      "model": "auto",
-      "enabled": true
-     }
-    },
-    "defaultProvider": "gemini",
-    "maxTokens": 500,
-    "temperature": 1.0,
-    "saveHistory": true,
-    "streaming": true,
-    "theme": "dark"
+   	"version": "0.1.0",
+   	"providers": {
+   		"gemini": {
+   			"name": "gemini",
+   			"apiKey": "your-api-key",
+   			"model": "gemini-2.5-flash",
+   			"enabled": true
+   		},
+   		"copilot": {
+   			"name": "copilot",
+   			"apiKey": "your-api-key",
+   			"model": "gpt-4o",
+   			"enabled": true
+   		},
+   		"kilo": {
+   			"name": "kilo",
+   			"apiKey": "your-api-key",
+   			"model": "auto",
+   			"enabled": true
+   		}
+   	},
+   	"defaultProvider": "gemini",
+   	"maxTokens": 500,
+   	"temperature": 1.0,
+   	"saveHistory": true,
+   	"streaming": true,
+   	"theme": "dark"
    }
    ```
 
