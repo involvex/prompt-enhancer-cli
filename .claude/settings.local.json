@@ -1,0 +1,15 @@
+{
+	"permissions": {
+		"allow": [
+			"Bash(bun:*)",
+			"Bash(jobs:*)",
+			"Bash(pkill:*)",
+			"Bash(\"D:\\\\repos\\\\involvex\\\\youtube-music-cli\\\\source\\\\utils\\\\constants.ts\":*)",
+			"Bash(xxd:*)",
+			"Bash(DEBUG=*)",
+			"Bash(start /B bun run start --web-only --web-port 8087)"
+		],
+		"additionalDirectories": ["D:\\repos\\gtop\\"]
+	},
+	"prefersReducedMotion": true
+}

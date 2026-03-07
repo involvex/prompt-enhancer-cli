@@ -1,0 +1,88 @@
+{
+	"name": "prompt-enhancer",
+	"description": "A Cli to enhance your prompts",
+	"author": "involvex",
+	"version": "0.0.0",
+	"license": "MIT",
+	"bin": {
+		"prompt-enhancer": "dist/cli.js"
+	},
+	"type": "module",
+	"funding": {
+		"type": "github",
+		"url": "https://github.com/sponsors/involvex"
+	},
+	"sponsor": {
+		"url": "https://github.com/sponsors/involvex"
+	},
+	"repository": {
+		"url": "https://github.com/involvex/prompt-enhancer-cli.git",
+		"type": "git"
+	},
+	"engines": {
+		"node": ">=16"
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "bun run src/cli.tsx",
+		"format": "prettier --write .",
+		"lint": "eslint src",
+		"lint:fix": "eslint src --fix",
+		"typecheck": "tsc --noEmit",
+		"prebuild": "bun run format && bun run lint:fix && bun run typecheck",
+		"test": "prettier --check . && xo && ava",
+		"changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
+	},
+	"files": [
+		"dist"
+	],
+	"dependencies": {
+		"@types/ink": "^2.0.3",
+		"@types/meow": "^6.0.0",
+		"has-flag": "^5.0.1",
+		"ink": "^6.8.0",
+		"ink-text-input": "^6.0.0",
+		"meow": "^14.1.0",
+		"react": "^18.2.0"
+	},
+	"devDependencies": {
+		"@eslint/js": "latest",
+		"@sindresorhus/tsconfig": "^8.1.0",
+		"@types/react": "^18.0.32",
+		"@vdemedes/prettier-config": "^2.0.1",
+		"ava": "^5.2.0",
+		"chalk": "^5.2.0",
+		"conventional-changelog-cli": "^5.0.0",
+		"eslint": "latest",
+		"eslint-config-xo-react": "^0.27.0",
+		"eslint-plugin-react": "^7.32.2",
+		"eslint-plugin-react-hooks": "^4.6.0",
+		"ink-testing-library": "^3.0.0",
+		"jiti": "latest",
+		"prettier": "latest",
+		"prettier-plugin-organize-imports": "^4.3.0",
+		"prettier-plugin-packagejson": "^3.0.0",
+		"prettier-plugin-sort-imports": "^1.8.10",
+		"ts-node": "^10.9.1",
+		"typescript": "^5.0.3",
+		"typescript-eslint": "latest",
+		"xo": "^0.53.1"
+	},
+	"ava": {
+		"extensions": {
+			"ts": "module",
+			"tsx": "module"
+		},
+		"nodeArguments": [
+			"--loader=ts-node/esm"
+		]
+	},
+	"xo": {
+		"extends": "xo-react",
+		"prettier": true,
+		"rules": {
+			"react/prop-types": "off"
+		}
+	},
+	"prettier": "@vdemedes/prettier-config"
+}
