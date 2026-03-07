@@ -37,7 +37,7 @@
 		"dist"
 	],
 	"dependencies": {
-		"@google/generative-ai": "^0.21.0",
+		"@google/generative-ai": "^0.24.1",
 		"@types/ink": "^2.0.3",
 		"@types/meow": "^6.0.0",
 		"has-flag": "^5.0.1",
