@@ -17,13 +17,13 @@
 ## Install
 
 ```bash
-$ npm install --global prompt-enhancer
+npm install --global prompt-enhancer
 ```
 
 Or use directly:
 
 ```bash
-$ npx prompt-enhancer
+npx prompt-enhancer
 ```
 
 ## Quick Start
@@ -31,7 +31,7 @@ $ npx prompt-enhancer
 ### Interactive TUI Mode (Default)
 
 ```bash
-$ prompt-enhancer
+prompt-enhancer
 ```
 
 This launches the interactive menu where you can:
@@ -62,35 +62,36 @@ $ prompt-enhancer -p "Your prompt here"
 
 2. **Manual Config File**:
    Edit `~/.prompt-enhancer/config.json`:
+
    ```json
    {
-   	"version": "0.1.0",
-   	"providers": {
-   		"gemini": {
-   			"name": "gemini",
-   			"apiKey": "your-api-key",
-   			"model": "gemini-2.5-flash",
-   			"enabled": true
-   		},
-   		"copilot": {
-   			"name": "copilot",
-   			"apiKey": "your-api-key",
-   			"model": "gpt-4o",
-   			"enabled": true
-   		},
-   		"kilo": {
-   			"name": "kilo",
-   			"apiKey": "your-api-key",
-   			"model": "auto",
-   			"enabled": true
-   		}
-   	},
-   	"defaultProvider": "gemini",
-   	"maxTokens": 500,
-   	"temperature": 1.0,
-   	"saveHistory": true,
-   	"streaming": true,
-   	"theme": "dark"
+    "version": "0.1.0",
+    "providers": {
+     "gemini": {
+      "name": "gemini",
+      "apiKey": "your-api-key",
+      "model": "gemini-2.5-flash",
+      "enabled": true
+     },
+     "copilot": {
+      "name": "copilot",
+      "apiKey": "your-api-key",
+      "model": "gpt-4o",
+      "enabled": true
+     },
+     "kilo": {
+      "name": "kilo",
+      "apiKey": "your-api-key",
+      "model": "auto",
+      "enabled": true
+     }
+    },
+    "defaultProvider": "gemini",
+    "maxTokens": 500,
+    "temperature": 1.0,
+    "saveHistory": true,
+    "streaming": true,
+    "theme": "dark"
    }
    ```
 
@@ -106,7 +107,7 @@ $ prompt-enhancer
 ### Quick CLI Enhancement
 
 ```bash
-$ prompt-enhancer -p "write a hello world program"
+prompt-enhancer -p "write a hello world program"
 ```
 
 ### View Enhancement History
@@ -154,15 +155,15 @@ $ prompt-enhancer
 
 ### Gemini
 
-Get your API key at: https://makersuite.google.com/app/apikey
+Get your API key at: <https://makersuite.google.com/app/apikey>
 
 ### OpenAI / Copilot
 
-Get your API key at: https://platform.openai.com/api-keys
+Get your API key at: <https://platform.openai.com/api-keys>
 
 ### Kilo Gateway
 
-Get your key at: https://kilo.dev (or use free models with no key)
+Get your key at: <https://kilo.dev> (or use free models with no key)
 
 ## Commands
 
@@ -224,26 +225,26 @@ src/
 ### Build
 
 ```bash
-$ npm run build
+npm run build
 ```
 
 ### Lint & Format
 
 ```bash
-$ npm run lint
-$ npm run format
+npm run lint
+npm run format
 ```
 
 ### Type Check
 
 ```bash
-$ npm run typecheck
+npm run typecheck
 ```
 
 ### Full Build Pipeline
 
 ```bash
-$ npm run build  # Runs format, lint, typecheck, then compile
+npm run build  # Runs format, lint, typecheck, then compile
 ```
 
 ## Technology Stack

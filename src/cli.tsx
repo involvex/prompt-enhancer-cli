@@ -7,6 +7,11 @@ import hasFlag from 'has-flag';
 import About from './commands/about.js';
 import DirectEnhance from './commands/direct-enhance.js';
 
+// Handle Ctrl+C globally to exit from any screen
+process.on('SIGINT', () => {
+	process.exit(0);
+});
+
 const cli = meow(
 	`
 	Usage
