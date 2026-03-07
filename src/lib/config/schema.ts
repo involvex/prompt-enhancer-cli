@@ -5,7 +5,7 @@
 import {z} from 'zod';
 
 export const ProviderConfigSchema = z.object({
-	name: z.enum(['gemini', 'copilot', 'kilo']),
+	name: z.enum(['gemini', 'copilot', 'kilo', 'opencode']),
 	apiKey: z.string().optional(),
 	model: z.string().optional(),
 	endpoint: z.string().url().optional(),

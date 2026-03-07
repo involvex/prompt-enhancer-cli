@@ -69,11 +69,11 @@ export default function Settings({onBack}: SettingsProps) {
 		return undefined;
 	}, [state, onBack]);
 
-	const loadModels = async (provider: ProviderType) => {
+	const loadModels = async (provider: ProviderType, key?: string) => {
 		setModelsLoading(true);
 		setModels([]);
 		try {
-			const entries = await getModelsForProvider(provider);
+			const entries = await getModelsForProvider(provider, key);
 			setModels(entries);
 		} catch {
 			setModels([]);
@@ -90,7 +90,10 @@ export default function Settings({onBack}: SettingsProps) {
 			nextUseOAuth ?? useOAuth,
 		);
 		if (nextStep === 'model' && selectedProvider) {
-			void loadModels(selectedProvider as ProviderType);
+			void loadModels(
+				selectedProvider as ProviderType,
+				selectedProvider === 'opencode' ? apiKey : undefined,
+			);
 		}
 		setStepIndex(nextIndex);
 	};
@@ -172,7 +175,7 @@ export default function Settings({onBack}: SettingsProps) {
 		}
 	};
 
-	const providers: ProviderType[] = ['gemini', 'copilot', 'kilo'];
+	const providers: ProviderType[] = ['gemini', 'copilot', 'kilo', 'opencode'];
 
 	const menuItems = [
 		...providers.map(p => ({label: `Configure ${p}`, value: p})),
@@ -317,13 +320,16 @@ export default function Settings({onBack}: SettingsProps) {
 		}
 
 		if (step === 'apiKey') {
-			const isRequired = selectedProvider === 'gemini';
+			const isRequired =
+				selectedProvider === 'gemini' || selectedProvider === 'opencode';
 			const hint =
 				selectedProvider === 'kilo'
 					? 'Free models still need an API key — get one at https://app.kilo.ai'
 					: selectedProvider === 'copilot'
 						? 'Enter your GitHub Copilot API key'
-						: undefined;
+						: selectedProvider === 'opencode'
+							? 'Enter your OpenCode API key — get one at https://opencode.ai'
+							: undefined;
 			return (
 				<Box flexDirection="column" paddingX={2}>
 					<Text bold color="cyan">
@@ -341,7 +347,7 @@ export default function Settings({onBack}: SettingsProps) {
 							onChange={setApiKey}
 							onSubmit={() => {
 								if (isRequired && !apiKey.trim()) {
-									setMessage('API key is required for Gemini');
+									setMessage(`API key is required for ${selectedProvider}`);
 									return;
 								}
 								setMessage('');

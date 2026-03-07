@@ -9,6 +9,7 @@ import {AppConfigSchema} from './schema.js';
 import {CONFIG_DIR, CONFIG_FILE} from '../utils/paths.js';
 
 import {KILO_DEFAULT_ENDPOINT, KILO_DEFAULT_MODEL} from '../providers/kilo.js';
+import {OPENCODE_CHAT_ENDPOINT} from '../providers/opencode.js';
 
 const DEFAULT_CONFIG: AppConfig = {
 	version: '1.0.0',
@@ -29,6 +30,11 @@ const DEFAULT_CONFIG: AppConfig = {
 			name: 'kilo',
 			enabled: true,
 			endpoint: KILO_DEFAULT_ENDPOINT,
+		},
+		opencode: {
+			name: 'opencode',
+			enabled: false,
+			endpoint: OPENCODE_CHAT_ENDPOINT,
 		},
 	},
 	temperature: 0.7,
@@ -135,7 +141,7 @@ export class ConfigManager {
 	): void {
 		if (!this.config.providers[providerName]) {
 			this.config.providers[providerName] = {
-				name: providerName as 'gemini' | 'copilot' | 'kilo',
+				name: providerName as 'gemini' | 'copilot' | 'kilo' | 'opencode',
 				enabled: false,
 			};
 		}

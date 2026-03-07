@@ -7,6 +7,10 @@ import {readFile, writeFile} from 'fs/promises';
 import {existsSync} from 'fs';
 import {MODELS_CACHE_FILE} from './paths.js';
 import {KILO_MODELS} from '../providers/kilo.js';
+import {
+	OPENCODE_MODELS_ENDPOINT,
+	OPENCODE_DEFAULT_MODEL,
+} from '../providers/opencode.js';
 
 const MODELS_API_URL = 'https://models.dev/api.json';
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -87,12 +91,55 @@ function extractModels(
 }
 
 /**
- * Returns model list for a given provider, using models.dev cache.
+ * Fetches available models directly from the OpenCode API.
+ * Falls back to a hardcoded list if the request fails.
+ */
+async function getOpenCodeModels(apiKey?: string): Promise<ModelEntry[]> {
+	const OPENCODE_FALLBACK: ModelEntry[] = [
+		{id: OPENCODE_DEFAULT_MODEL, name: 'Claude Sonnet 4.5'},
+		{id: 'anthropic/claude-opus-4-5', name: 'Claude Opus 4.5'},
+		{id: 'anthropic/claude-haiku-4-5', name: 'Claude Haiku 4.5'},
+		{id: 'openai/gpt-4o', name: 'GPT-4o'},
+		{id: 'openai/gpt-4o-mini', name: 'GPT-4o mini'},
+		{id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash'},
+	];
+
+	try {
+		const headers: Record<string, string> = {};
+		if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+
+		const response = await fetch(OPENCODE_MODELS_ENDPOINT, {headers});
+		if (!response.ok) return OPENCODE_FALLBACK;
+
+		const data = (await response.json()) as {
+			data?: Array<{id: string; owned_by?: string}>;
+		};
+		if (!Array.isArray(data.data) || data.data.length === 0) {
+			return OPENCODE_FALLBACK;
+		}
+
+		return data.data
+			.map(m => ({
+				id: m.id,
+				name: m.id,
+			}))
+			.filter(m => m.id);
+	} catch {
+		return OPENCODE_FALLBACK;
+	}
+}
+
+/**
  * Falls back to a hardcoded list if network is unavailable.
  */
 export async function getModelsForProvider(
-	provider: 'gemini' | 'copilot' | 'kilo',
+	provider: 'gemini' | 'copilot' | 'kilo' | 'opencode',
+	apiKey?: string,
 ): Promise<ModelEntry[]> {
+	if (provider === 'opencode') {
+		return getOpenCodeModels(apiKey);
+	}
+
 	try {
 		const data = await getModelsData();
 

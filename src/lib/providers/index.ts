@@ -7,9 +7,10 @@ import {Provider} from './base.js';
 import {GeminiProvider} from './gemini.js';
 import {CopilotProvider} from './copilot.js';
 import {KiloProvider} from './kilo.js';
+import {OpenCodeProvider} from './opencode.js';
 import type {ProviderCredentials} from '../types/index.js';
 
-export type ProviderType = 'gemini' | 'copilot' | 'kilo';
+export type ProviderType = 'gemini' | 'copilot' | 'kilo' | 'opencode';
 
 class ProviderRegistry {
 	private providers: Map<string, Provider> = new Map();
@@ -59,6 +60,10 @@ export class ProviderFactory {
 
 			case 'kilo': {
 				return new KiloProvider(credentials);
+			}
+
+			case 'opencode': {
+				return new OpenCodeProvider(credentials);
 			}
 
 			default: {
@@ -111,5 +116,5 @@ export function getProvider(
  * Get list of supported provider types
  */
 export function getSupportedProviders(): ProviderType[] {
-	return ['gemini', 'copilot', 'kilo'];
+	return ['gemini', 'copilot', 'kilo', 'opencode'];
 }
