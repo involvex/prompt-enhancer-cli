@@ -5,14 +5,17 @@ export default function Help() {
 	return (
 		<Box flexDirection="column" padding={1}>
 			<Text bold>Usage</Text>
-			<Text> $ %NAME%</Text>
+			<Text> $ prompt-enhancer --prompt "Your prompt"</Text>
 			<Text />
-			<Text bold>Options</Text>
-			<Text> --name Your name</Text>
 			<Text />
 			<Text bold>Examples</Text>
-			<Text> $ %NAME% --name=Jane</Text>
-			<Text> Hello, Jane</Text>
+			<Text> $ prompt-enhancer --prompt="Build a Cli to enhance prompts"</Text>
+			<Text />
+			<Text>
+				{' '}
+				Enhanced Prompt: "Build a powerful CLI tool that enhances and optimizes
+				prompts for better performance and results."
+			</Text>
 		</Box>
 	);
 }
