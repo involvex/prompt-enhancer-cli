@@ -1,23 +1,67 @@
 import {useState, useEffect} from 'react';
 import {Box, Text} from 'ink';
 import TextInput from 'ink-text-input';
+import SelectInput from './select-input.js';
 import {ConfigManager} from '../lib/config/manager.js';
 import {HistoryManager} from '../lib/history/manager.js';
 import {EnhancementEngine} from '../lib/enhancement/engine.js';
 import type {ProviderType} from '../lib/providers/index.js';
+import {writeToClipboard} from '../lib/utils/clipboard.js';
 
 interface EnhancePromptProps {
 	onBack: () => void;
 }
 
-type State = 'input' | 'enhancing' | 'complete' | 'error';
+type State = 'input' | 'enhancing' | 'complete' | 'preset-select' | 'error';
+type CompleteAction = 'copy' | 'enhance-further' | 'main-menu';
+type ErrorAction = 'retry' | 'main-menu';
+type PresetId = 'concise' | 'detailed' | 'structured' | 'coding';
 
-export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
+const PROVIDERS: ProviderType[] = ['gemini', 'copilot', 'kilo', 'opencode'];
+
+const DEFAULT_SYSTEM_PROMPT =
+	'You are an expert at enhancing and improving user prompts for LLMs. Analyze the given prompt and return an improved version that is clearer, more specific, and more likely to produce better results. Return ONLY the enhanced prompt, no explanations.';
+
+const PRESETS: Record<PresetId, {label: string; instruction: string}> = {
+	concise: {
+		label: 'Make concise',
+		instruction:
+			'Prioritize brevity and remove unnecessary detail while preserving all critical intent.',
+	},
+	detailed: {
+		label: 'Make more detailed',
+		instruction:
+			'Expand the prompt with richer context, constraints, and expected outcomes.',
+	},
+	structured: {
+		label: 'Add structure + output format',
+		instruction:
+			'Restructure the prompt with clear sections and explicit output format instructions.',
+	},
+	coding: {
+		label: 'Improve for coding tasks',
+		instruction:
+			'Optimize for software engineering tasks with explicit technical constraints, edge cases, and validation expectations.',
+	},
+};
+
+function isProviderType(value: string): value is ProviderType {
+	return PROVIDERS.includes(value as ProviderType);
+}
+
+function createPresetSystemPrompt(presetId: PresetId): string {
+	const preset = PRESETS[presetId];
+	return `${DEFAULT_SYSTEM_PROMPT}\n\nAdditional enhancement direction:\n${preset.instruction}\n\nKeep your response as ONLY the improved prompt text.`;
+}
+
+export default function EnhancePrompt({onBack}: EnhancePromptProps) {
 	const [state, setState] = useState<State>('input');
 	const [prompt, setPrompt] = useState('');
+	const [sourcePrompt, setSourcePrompt] = useState('');
 	const [enhancedText, setEnhancedText] = useState('');
+	const [statusMessage, setStatusMessage] = useState('');
 	const [error, setError] = useState('');
-	const [defaultProvider, setDefaultProvider] = useState('kilo');
+	const [defaultProvider, setDefaultProvider] = useState<ProviderType>('kilo');
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
@@ -26,10 +70,15 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 				const configManager = new ConfigManager();
 				await configManager.load();
 				const cfg = configManager.getConfig();
-				setDefaultProvider(cfg.defaultProvider ?? 'kilo');
+				setDefaultProvider(
+					cfg.defaultProvider && isProviderType(cfg.defaultProvider)
+						? cfg.defaultProvider
+						: 'kilo',
+				);
 				setLoading(false);
 			} catch (_err) {
 				setError('Failed to load configuration');
+				setState('error');
 				setLoading(false);
 			}
 		})();
@@ -40,12 +89,15 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 			setError('Prompt cannot be empty');
 			return;
 		}
-		setError('');
-		void enhancePrompt(defaultProvider);
+		void runEnhancement(prompt);
 	};
 
-	const enhancePrompt = async (provider: string) => {
+	const runEnhancement = async (inputPrompt: string, systemPrompt?: string) => {
 		setState('enhancing');
+		setSourcePrompt(inputPrompt);
+		setError('');
+		setStatusMessage('');
+		setEnhancedText('');
 		try {
 			const configManager = new ConfigManager();
 			await configManager.load();
@@ -55,8 +107,9 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 
 			let result = '';
 			const generator = engine.enhanceStream({
-				prompt,
-				provider: provider as ProviderType,
+				prompt: inputPrompt,
+				provider: defaultProvider,
+				systemPrompt,
 				saveToHistory: true,
 			});
 
@@ -71,11 +124,60 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 				);
 			}
 
+			setPrompt(result);
 			setState('complete');
 		} catch (err) {
 			setError(err instanceof Error ? err.message : String(err));
 			setState('error');
 		}
+	};
+
+	const handleCompleteActionSelect = (action: CompleteAction) => {
+		if (action === 'copy') {
+			void (async () => {
+				const result = await writeToClipboard(enhancedText);
+				setStatusMessage(
+					result.success
+						? '✓ Enhanced prompt copied to clipboard.'
+						: `Copy failed: ${result.message}`,
+				);
+			})();
+			return;
+		}
+
+		if (action === 'enhance-further') {
+			setStatusMessage('');
+			setState('preset-select');
+			return;
+		}
+
+		onBack();
+	};
+
+	const handlePresetSelect = (presetId: PresetId | 'back') => {
+		if (presetId === 'back') {
+			setState('complete');
+			return;
+		}
+
+		void runEnhancement(enhancedText, createPresetSystemPrompt(presetId));
+	};
+
+	const handleErrorActionSelect = (action: ErrorAction) => {
+		if (action === 'retry') {
+			const retryPrompt = sourcePrompt || prompt;
+			if (!retryPrompt.trim()) {
+				setError(
+					'No prompt is available to retry. Return to the main menu and start a new enhancement.',
+				);
+				return;
+			}
+
+			void runEnhancement(retryPrompt);
+			return;
+		}
+
+		onBack();
 	};
 
 	if (loading) {
@@ -115,6 +217,7 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 				<Box marginY={1}>
 					<Text>{enhancedText}</Text>
 				</Box>
+				<Text color="gray">Streaming response...</Text>
 			</Box>
 		);
 	}
@@ -126,13 +229,52 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 					✓ Enhancement complete!
 				</Text>
 				<Text />
-				<Text bold>Original:</Text>
-				<Text>{prompt}</Text>
+				<Text bold>Source prompt:</Text>
+				<Text>{sourcePrompt}</Text>
 				<Text />
 				<Text bold>Enhanced:</Text>
 				<Text>{enhancedText}</Text>
 				<Text />
-				<Text color="gray">(Press Ctrl+C to return to menu)</Text>
+				{statusMessage && (
+					<Text color={statusMessage.startsWith('✓') ? 'green' : 'red'}>
+						{statusMessage}
+					</Text>
+				)}
+				<Box marginY={1}>
+					<SelectInput<CompleteAction>
+						items={[
+							{label: 'Copy enhanced prompt to clipboard', value: 'copy'},
+							{label: 'Enhance further', value: 'enhance-further'},
+							{label: 'Return to main menu', value: 'main-menu'},
+						]}
+						onSelect={item => handleCompleteActionSelect(item.value)}
+						initialIndex={0}
+					/>
+				</Box>
+			</Box>
+		);
+	}
+
+	if (state === 'preset-select') {
+		return (
+			<Box flexDirection="column" paddingX={2}>
+				<Text bold color="cyan">
+					Enhance further
+				</Text>
+				<Text color="gray">Select how to refine the enhanced prompt:</Text>
+				<Box marginY={1}>
+					<SelectInput<PresetId | 'back'>
+						items={[
+							{label: PRESETS.concise.label, value: 'concise'},
+							{label: PRESETS.detailed.label, value: 'detailed'},
+							{label: PRESETS.structured.label, value: 'structured'},
+							{label: PRESETS.coding.label, value: 'coding'},
+							{label: 'Back to actions', value: 'back'},
+						]}
+						onSelect={item => handlePresetSelect(item.value)}
+						initialIndex={0}
+					/>
+				</Box>
 			</Box>
 		);
 	}
@@ -145,7 +287,16 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 				</Text>
 				<Text color="red">{error}</Text>
 				<Text />
-				<Text color="gray">(Press Ctrl+C to return to menu)</Text>
+				<Box marginY={1}>
+					<SelectInput<ErrorAction>
+						items={[
+							{label: 'Retry enhancement', value: 'retry'},
+							{label: 'Return to main menu', value: 'main-menu'},
+						]}
+						onSelect={item => handleErrorActionSelect(item.value)}
+						initialIndex={0}
+					/>
+				</Box>
 			</Box>
 		);
 	}

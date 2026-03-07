@@ -12,6 +12,8 @@
 - 💾 **Config Management** - Persistent settings at `~/.prompt-enhancer/`
 - 📜 **History Tracking** - Browse past enhancements
 - 🔄 **Streaming Output** - Real-time enhanced prompt display
+- 📋 **Post-Enhancement Actions** - Copy to clipboard, enhance further, or return to main menu
+- 🧠 **Enhance Further Presets** - Make concise, make more detailed, add structure/output format, improve for coding tasks
 - 🎨 **Interactive Settings** - Configure providers via TUI
 
 ## Install
@@ -40,6 +42,12 @@ This launches the interactive menu where you can:
 - Configure provider settings
 - View enhancement history
 - Get help
+
+After an enhancement completes in TUI mode, you can:
+
+- Copy the enhanced prompt to clipboard
+- Run "Enhance further" with presets
+- Return to the main menu without exiting
 
 ### CLI Mode - Direct Enhancement
 

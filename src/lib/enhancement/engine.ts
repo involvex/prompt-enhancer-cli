@@ -13,6 +13,7 @@ export interface EnhancementRequest {
 	model?: string; // override default model
 	temperature?: number;
 	maxTokens?: number;
+	systemPrompt?: string;
 	saveToHistory?: boolean;
 }
 
@@ -69,6 +70,7 @@ export class EnhancementEngine {
 			model: request.model || config.defaultModel,
 			temperature: request.temperature ?? config.temperature,
 			maxTokens: request.maxTokens ?? config.maxTokens,
+			systemPrompt: request.systemPrompt,
 		};
 
 		// Enhance the prompt
@@ -142,6 +144,7 @@ export class EnhancementEngine {
 			model: request.model || config.defaultModel,
 			temperature: request.temperature ?? config.temperature,
 			maxTokens: request.maxTokens ?? config.maxTokens,
+			systemPrompt: request.systemPrompt,
 		};
 
 		// Stream enhancement
