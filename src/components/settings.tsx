@@ -34,6 +34,17 @@ export default function Settings({onBack}: SettingsProps) {
 		})();
 	}, []);
 
+	useEffect(() => {
+		if (state === 'success') {
+			const timeout = setTimeout(() => {
+				onBack();
+			}, 2000);
+			return () => clearTimeout(timeout);
+		}
+
+		return undefined;
+	}, [state, onBack]);
+
 	const providers: ProviderType[] = ['gemini', 'copilot', 'kilo'];
 	const menuItems = [
 		...providers.map(p => ({label: `Configure ${p}`, value: p})),
@@ -153,13 +164,6 @@ export default function Settings({onBack}: SettingsProps) {
 	}
 
 	if (state === 'success') {
-		useEffect(() => {
-			const timeout = setTimeout(() => {
-				onBack();
-			}, 2000);
-			return () => clearTimeout(timeout);
-		}, [onBack]);
-
 		return (
 			<Box flexDirection="column" paddingX={2}>
 				<Text color="green">{message}</Text>
