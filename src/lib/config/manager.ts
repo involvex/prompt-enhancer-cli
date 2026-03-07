@@ -105,6 +105,14 @@ export class ConfigManager {
 	}
 
 	/**
+	 * Set the entire config object (and save)
+	 */
+	async setConfig(config: AppConfig): Promise<void> {
+		this.config = config;
+		await this.save();
+	}
+
+	/**
 	 * Update a specific setting
 	 */
 	setSetting<K extends keyof AppConfig>(key: K, value: AppConfig[K]): void {
