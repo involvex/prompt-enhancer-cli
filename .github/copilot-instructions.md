@@ -11,63 +11,63 @@ Use the npm scripts defined in package.json (project root):
 - Full build (includes format, lint:fix, typecheck via `prebuild`):
 
 ```bash
-npm run build
+bun run build
 ```
 
 - Development (run the source CLI/TUI directly):
 
 ```bash
-npm run dev   # uses bun to run src/cli.tsx (requires bun)
+bun run dev   # uses bun to run src/cli.tsx (requires bun)
 # if bun is not available, run the source with ts-node:
-npx ts-node src/cli.tsx
+bunx ts-node src/cli.tsx
 ```
 
 - Type check only:
 
 ```bash
-npm run typecheck   # tsc --noEmit
+bun run typecheck   # tsc --noEmit
 ```
 
 - Lint / fix:
 
 ```bash
-npm run lint        # eslint src
-npm run lint:fix    # eslint src --fix
+bun run lint        # eslint src
+bun run lint:fix    # eslint src --fix
 # single file lint + fix:
-npx eslint --fix path/to/file.tsx
+bun eslint --fix path/to/file.tsx
 ```
 
 - Format:
 
 ```bash
-npm run format      # prettier --write .
+bun run format      # prettier --write .
 # single file format:
-npx prettier --write path/to/file.ts
+bunx prettier --write path/to/file.ts
 ```
 
 - Tests / single-test execution:
 
 ```bash
-npm test            # runs prettier --check . && xo && ava (uses ava for unit tests)
+bun test            # runs prettier --check . && xo && ava (uses ava for unit tests)
 # Run a single AVA test file (AVA uses the node loader from package.json):
-npx ava path/to/test-file.ts
+bun ava path/to/test-file.ts
 # Run tests that match a title substring:
 # (AVA supports --match to run tests by title)
-npx ava --match "partial test title"
+bunx ava --match "partial test title"
 ```
 
 - Run the packaged binary (after build):
 
 ```bash
-node dist/cli.js -p "write a hello world program"
+bun dist/cli.js -p "write a hello world program"
 # or locally install for testing:
-npm link && prompt-enhancer -p "..."
+bun link && prompt-enhancer -p "..."
 ```
 
 Notes:
 
-- `npm run build` will run `prebuild` first (format, lint:fix, typecheck) because `prebuild` is defined in package.json.
-- AVA test runner is configured in package.json to use the ts-node/esm loader; running `npx ava` will pick up that configuration.
+- `bun run build` will run `prebuild` first (format, lint:fix, typecheck) because `prebuild` is defined in package.json.
+- AVA test runner is configured in package.json to use the ts-node/esm loader; running `bunx ava` will pick up that configuration.
 
 ---
 
@@ -103,9 +103,9 @@ Notes:
 
 - Ink & React: UI components are plain React function components written in `.tsx`. Keep TUI logic in `components/` and command wiring in `commands/`.
 
-- Tests: AVA is configured for TypeScript via `--loader=ts-node/esm` (see package.json). Use `npx ava path/to/test.ts` for a single file; `npm test` runs the whole checks pipeline (prettier check, xo, ava).
+- Tests: AVA is configured for TypeScript via `--loader=ts-node/esm` (see package.json). Use `bunx ava path/to/test.ts` for a single file; `bun test` runs the whole checks pipeline (prettier check, xo, ava).
 
-- Dev workflow: `npm run dev` uses `bun run ...` for a fast interactive run; builds and CI use Node/TypeScript compilation (`tsc`).
+- Dev workflow: `bun run dev` uses `bun run ...` for a fast interactive run; builds and CI use Node/TypeScript compilation (`tsc`).
 
 - Secrets & config: API keys are persisted unencrypted in `~/.prompt-enhancer/config.json` by current implementation — do not commit keys to the repo; prefer environment variables for CI.
 
