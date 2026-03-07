@@ -1,5 +1,5 @@
 {
-	"name": "prompt-enhancer",
+	"name": "@involvex/prompt-enhancer",
 	"description": "A Cli to enhance your prompts",
 	"author": "involvex",
 	"version": "0.0.0",
