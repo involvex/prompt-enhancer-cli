@@ -8,6 +8,10 @@ import {Provider} from './base.js';
 import type {EnhancementOptions, ProviderCredentials} from '../types/index.js';
 
 export const KILO_MODELS = [
+	{
+		id: 'openrouter/free',
+		name: 'OpenRouter Free Router (auto-select free model)',
+	},
 	{id: 'minimax/minimax-m2.5', name: 'MiniMax M2.5 (recommended)'},
 	{id: 'minimax/minimax-m2.1', name: 'MiniMax M2.1'},
 	{id: 'minimax/minimax', name: 'MiniMax'},

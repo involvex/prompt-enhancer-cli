@@ -39,6 +39,12 @@ export default function DirectEnhance({prompt}: DirectEnhanceProps) {
 					setOutput(result);
 				}
 
+				if (!result.trim()) {
+					throw new Error(
+						'Enhancement returned an empty result — the model may be rate-limited or temporarily unavailable.',
+					);
+				}
+
 				setStatus('complete');
 			} catch (err) {
 				setStatus('error');

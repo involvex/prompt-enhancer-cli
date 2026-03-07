@@ -65,6 +65,12 @@ export default function EnhancePrompt({onBack: _onBack}: EnhancePromptProps) {
 				setEnhancedText(result);
 			}
 
+			if (!result.trim()) {
+				throw new Error(
+					'Enhancement returned an empty result — the model may be rate-limited or temporarily unavailable. Try a different model.',
+				);
+			}
+
 			setState('complete');
 		} catch (err) {
 			setError(err instanceof Error ? err.message : String(err));
