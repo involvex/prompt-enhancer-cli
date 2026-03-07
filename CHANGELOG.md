@@ -1,3 +1,9 @@
+## [0.0.5](https://github.com/involvex/prompt-enhancer-cli/compare/v0.0.4...v0.0.5) (2026-03-07)
+
+### Bug Fixes
+
+- correct file path references in GitHub release workflow ([9ed443b](https://github.com/involvex/prompt-enhancer-cli/commit/9ed443bd8beff8dcc092ba2c132da661c142dcc5))
+
 ## [0.0.4](https://github.com/involvex/prompt-enhancer-cli/compare/v0.0.3...v0.0.4) (2026-03-07)
 
 ## [0.0.3](https://github.com/involvex/prompt-enhancer-cli/compare/v0.0.2...v0.0.3) (2026-03-07)
