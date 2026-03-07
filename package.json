@@ -33,10 +33,14 @@
 		"test": "prettier --check . && xo && ava",
 		"changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
 		"compile": "bun run prebuild && bun build src/cli.tsx --compile --outfile dist/prompt-enhancer.exe",
-		"clean": "del-cli dist"
+		"clean": "del-cli dist",
+		"release": "bun run clean && powershell -File scripts/release.ps1"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"readme.md",
+		"LICENSE",
+		".github/FUNDING.yml"
 	],
 	"dependencies": {
 		"@google/generative-ai": "^0.24.1",

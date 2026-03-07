@@ -1,6 +1,6 @@
 # prompt-enhancer
 
-> CLI/TUI tool to enhance prompts using various LLM providers (Gemini, Copilot, Kilo-gateway)
+> CLI/TUI tool to enhance prompts using various LLM providers (Gemini, Copilot, Kilo-gateway, Opencode Zen)
 
 **Status**: ✅ MVP Complete - Phase 4 Interactive TUI Ready for Use
 
@@ -225,26 +225,26 @@ src/
 ### Build
 
 ```bash
-npm run build
+bun run build
 ```
 
 ### Lint & Format
 
 ```bash
-npm run lint
-npm run format
+bun run lint
+bun run format
 ```
 
 ### Type Check
 
 ```bash
-npm run typecheck
+bun run typecheck
 ```
 
 ### Full Build Pipeline
 
 ```bash
-npm run build  # Runs format, lint, typecheck, then compile
+bun run build  # Runs format, lint, typecheck, then compile
 ```
 
 ## Technology Stack
