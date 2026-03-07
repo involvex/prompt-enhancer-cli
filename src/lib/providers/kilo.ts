@@ -6,6 +6,11 @@
 
 import {Provider} from './base.js';
 import type {EnhancementOptions, ProviderCredentials} from '../types/index.js';
+import {
+	debugLog,
+	logWithLevel,
+	redactAuthorizationHeaders,
+} from '../utils/runtime-logging.js';
 
 export const KILO_MODELS = [
 	{
@@ -108,12 +113,26 @@ export class KiloProvider extends Provider {
 			max_tokens: options?.maxTokens ?? 1000,
 			stream: false,
 		};
+		const headers = this.buildHeaders();
+		debugLog('Kilo API request payload', {
+			endpoint: this.endpoint,
+			headers: redactAuthorizationHeaders(headers),
+			body,
+		});
 
 		const response = await fetch(this.endpoint, {
 			method: 'POST',
-			headers: this.buildHeaders(),
+			headers,
 			body: JSON.stringify(body),
 		});
+		debugLog('Kilo API response status', {
+			status: response.status,
+			statusText: response.statusText,
+		});
+		if (response.ok) {
+			const rawResponse = await response.clone().text();
+			debugLog('Kilo API raw response body', rawResponse);
+		}
 
 		if (!response.ok) {
 			await throwOnError(response);
@@ -142,11 +161,21 @@ export class KiloProvider extends Provider {
 			max_tokens: options?.maxTokens ?? 1000,
 			stream: true,
 		};
+		const headers = this.buildHeaders();
+		debugLog('Kilo stream request payload', {
+			endpoint: this.endpoint,
+			headers: redactAuthorizationHeaders(headers),
+			body,
+		});
 
 		const response = await fetch(this.endpoint, {
 			method: 'POST',
-			headers: this.buildHeaders(),
+			headers,
 			body: JSON.stringify(body),
+		});
+		debugLog('Kilo stream response status', {
+			status: response.status,
+			statusText: response.statusText,
 		});
 
 		if (!response.ok) {
@@ -158,6 +187,7 @@ export class KiloProvider extends Provider {
 		const reader = response.body.getReader();
 		const decoder = new TextDecoder();
 		let buffer = '';
+		let eventCount = 0;
 
 		try {
 			while (true) {
@@ -173,6 +203,8 @@ export class KiloProvider extends Provider {
 						const data = line.slice(6).trim();
 						if (data === '[DONE]') return;
 						try {
+							eventCount++;
+							logWithLevel(3, `Kilo stream event #${eventCount}`, data);
 							const parsed = JSON.parse(data) as {
 								choices?: Array<{delta: {content?: string}}>;
 								error?: {type?: string; message?: string; code?: number};

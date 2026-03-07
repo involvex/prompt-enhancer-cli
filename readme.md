@@ -180,15 +180,31 @@ $ prompt-enhancer --help
 
   Usage
     $ prompt-enhancer
+    $ prompt-enhancer --prompt "your prompt"
+    $ prompt-enhancer enhance "your prompt"
 
   Options
-    --prompt, -p    Your prompt to enhance (optional)
-    --help, -h      Show help
-    --version, -v   Show version
+    --prompt, -p              Prompt text for headless mode
+    --output, -o              Write output to a file
+    --output-format           Output format: auto | txt | json | md (default: auto)
+    --verbose                 Verbosity level: 1 | 2 | 3 (default: 1)
+    --debug                   Enable debug diagnostics + API request/response logs
+    --trace                   Enable step-by-step execution trace
+    --about                   Show package metadata
+    --version, -v             Show version
+    --help, -h                Show help
+
+  Subcommands
+    help                      Show comprehensive help
+    about                     Show package metadata
+    version                   Show version details
+    enhance                   Run headless enhancement using positional prompt text
 
   Examples
     $ prompt-enhancer
     $ prompt-enhancer -p "build a cli to enhance prompts"
+    $ prompt-enhancer -p "summarize this architecture" -o .\out\result.json --output-format json
+    $ prompt-enhancer enhance "design API retries" --debug --trace --verbose 3
     $ prompt-enhancer --help
 ```
 

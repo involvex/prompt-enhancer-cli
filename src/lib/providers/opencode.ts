@@ -7,6 +7,11 @@
 
 import {Provider} from './base.js';
 import type {EnhancementOptions, ProviderCredentials} from '../types/index.js';
+import {
+	debugLog,
+	logWithLevel,
+	redactAuthorizationHeaders,
+} from '../utils/runtime-logging.js';
 
 export const OPENCODE_BASE_URL = 'https://opencode.ai/zen/v1';
 export const OPENCODE_MODELS_ENDPOINT = `${OPENCODE_BASE_URL}/models`;
@@ -119,12 +124,26 @@ export class OpenCodeProvider extends Provider {
 			max_tokens: options?.maxTokens ?? 1000,
 			stream: false,
 		};
+		const headers = this.buildHeaders();
+		debugLog('OpenCode API request payload', {
+			endpoint: this.chatEndpoint,
+			headers: redactAuthorizationHeaders(headers),
+			body,
+		});
 
 		const response = await fetch(this.chatEndpoint, {
 			method: 'POST',
-			headers: this.buildHeaders(),
+			headers,
 			body: JSON.stringify(body),
 		});
+		debugLog('OpenCode API response status', {
+			status: response.status,
+			statusText: response.statusText,
+		});
+		if (response.ok) {
+			const rawResponse = await response.clone().text();
+			debugLog('OpenCode raw response body', rawResponse);
+		}
 
 		if (!response.ok) {
 			await throwOnError(response);
@@ -153,11 +172,21 @@ export class OpenCodeProvider extends Provider {
 			max_tokens: options?.maxTokens ?? 1000,
 			stream: true,
 		};
+		const headers = this.buildHeaders();
+		debugLog('OpenCode stream request payload', {
+			endpoint: this.chatEndpoint,
+			headers: redactAuthorizationHeaders(headers),
+			body,
+		});
 
 		const response = await fetch(this.chatEndpoint, {
 			method: 'POST',
-			headers: this.buildHeaders(),
+			headers,
 			body: JSON.stringify(body),
+		});
+		debugLog('OpenCode stream response status', {
+			status: response.status,
+			statusText: response.statusText,
 		});
 
 		if (!response.ok) {
@@ -169,6 +198,7 @@ export class OpenCodeProvider extends Provider {
 		const reader = response.body.getReader();
 		const decoder = new TextDecoder();
 		let buffer = '';
+		let eventCount = 0;
 
 		try {
 			while (true) {
@@ -184,6 +214,8 @@ export class OpenCodeProvider extends Provider {
 						const data = line.slice(6).trim();
 						if (data === '[DONE]') return;
 						try {
+							eventCount++;
+							logWithLevel(3, `OpenCode stream event #${eventCount}`, data);
 							const parsed = JSON.parse(data) as {
 								choices?: Array<{delta: {content?: string}}>;
 								error?: {type?: string; message?: string; code?: number};

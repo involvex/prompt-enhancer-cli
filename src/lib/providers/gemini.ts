@@ -5,6 +5,7 @@
 import {GoogleGenerativeAI} from '@google/generative-ai';
 import {Provider} from './base.js';
 import type {EnhancementOptions, ProviderCredentials} from '../types/index.js';
+import {debugLog, logWithLevel} from '../utils/runtime-logging.js';
 
 export class GeminiProvider extends Provider {
 	private client: GoogleGenerativeAI;
@@ -27,8 +28,7 @@ export class GeminiProvider extends Provider {
 		const systemPrompt =
 			options?.systemPrompt ||
 			'You are an expert at enhancing and improving user prompts for LLMs. Analyze the given prompt and return an improved version that is clearer, more specific, and more likely to produce better results. Return ONLY the enhanced prompt, no explanations.';
-
-		const result = await model.generateContent({
+		const payload = {
 			contents: [
 				{
 					role: 'user',
@@ -39,9 +39,21 @@ export class GeminiProvider extends Provider {
 					],
 				},
 			],
+		};
+		debugLog('Gemini API request payload', {
+			model: options?.model || this.defaultModel,
+			temperature: options?.temperature,
+			maxTokens: options?.maxTokens,
+			payload,
 		});
 
+		const result = await model.generateContent(payload);
+
 		const response = result.response;
+		debugLog('Gemini API response metadata', {
+			candidates: response.candidates?.length ?? 0,
+			usageMetadata: response.usageMetadata ?? null,
+		});
 		const text = response.text();
 
 		if (!text) {
@@ -62,8 +74,7 @@ export class GeminiProvider extends Provider {
 		const systemPrompt =
 			options?.systemPrompt ||
 			'You are an expert at enhancing and improving user prompts for LLMs. Analyze the given prompt and return an improved version that is clearer, more specific, and more likely to produce better results. Return ONLY the enhanced prompt, no explanations.';
-
-		const result = await model.generateContentStream({
+		const streamPayload = {
 			contents: [
 				{
 					role: 'user',
@@ -74,11 +85,22 @@ export class GeminiProvider extends Provider {
 					],
 				},
 			],
+		};
+		debugLog('Gemini stream request payload', {
+			model: options?.model || this.defaultModel,
+			streamPayload,
 		});
 
+		const result = await model.generateContentStream(streamPayload);
+
+		let chunkCount = 0;
 		for await (const chunk of result.stream) {
+			chunkCount++;
 			const text = chunk.text();
 			if (text) {
+				logWithLevel(3, `Gemini stream chunk #${chunkCount}`, {
+					length: text.length,
+				});
 				yield text;
 			}
 		}

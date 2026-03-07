@@ -9,6 +9,7 @@ import {OpenAI} from 'openai';
 import {Provider} from './base.js';
 import type {EnhancementOptions, ProviderCredentials} from '../types/index.js';
 import {getCopilotToken} from '../utils/copilot-auth.js';
+import {debugLog, logWithLevel} from '../utils/runtime-logging.js';
 
 export class CopilotProvider extends Provider {
 	private client!: OpenAI;
@@ -53,6 +54,21 @@ export class CopilotProvider extends Provider {
 		const systemPrompt =
 			options?.systemPrompt ||
 			'You are an expert at enhancing and improving user prompts for LLMs. Analyze the given prompt and return an improved version that is clearer, more specific, and more likely to produce better results. Return ONLY the enhanced prompt, no explanations.';
+		debugLog('Copilot API request payload', {
+			model: options?.model || this.defaultModel,
+			temperature: options?.temperature || 0.7,
+			max_tokens: options?.maxTokens || 1000,
+			messages: [
+				{
+					role: 'system',
+					content: systemPrompt,
+				},
+				{
+					role: 'user',
+					content: `Original prompt:\n${prompt}`,
+				},
+			],
+		});
 
 		const response = await this.client.chat.completions.create({
 			messages: [
@@ -69,6 +85,7 @@ export class CopilotProvider extends Provider {
 			temperature: options?.temperature || 0.7,
 			max_tokens: options?.maxTokens || 1000,
 		});
+		debugLog('Copilot API response payload', response);
 
 		const content = response.choices[0]?.message?.content;
 
@@ -87,6 +104,22 @@ export class CopilotProvider extends Provider {
 		const systemPrompt =
 			options?.systemPrompt ||
 			'You are an expert at enhancing and improving user prompts for LLMs. Analyze the given prompt and return an improved version that is clearer, more specific, and more likely to produce better results. Return ONLY the enhanced prompt, no explanations.';
+		debugLog('Copilot stream API request payload', {
+			messages: [
+				{
+					role: 'system',
+					content: systemPrompt,
+				},
+				{
+					role: 'user',
+					content: `Original prompt:\n${prompt}`,
+				},
+			],
+			model: options?.model || this.defaultModel,
+			temperature: options?.temperature || 0.7,
+			max_tokens: options?.maxTokens || 1000,
+			stream: true,
+		});
 
 		const stream = await this.client.chat.completions.create({
 			messages: [
@@ -105,7 +138,12 @@ export class CopilotProvider extends Provider {
 			stream: true,
 		});
 
+		let chunkCount = 0;
 		for await (const event of stream) {
+			chunkCount++;
+			logWithLevel(3, `Copilot stream event #${chunkCount}`, {
+				hasChoices: Boolean(event.choices?.length),
+			});
 			const content = event.choices[0]?.delta?.content;
 			if (content) {
 				yield content;
