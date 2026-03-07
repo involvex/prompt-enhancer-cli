@@ -1,3 +1,5 @@
+## [0.0.3](https://github.com/involvex/prompt-enhancer-cli/compare/v0.0.2...v0.0.3) (2026-03-07)
+
 ## [0.0.2](https://github.com/involvex/prompt-enhancer-cli/compare/v0.0.1...v0.0.2) (2026-03-07)
 
 ## [0.0.1](https://github.com/involvex/prompt-enhancer-cli/compare/5f923807541037804590dfe7f068fce8ad2e237a...v0.0.1) (2026-03-07)
