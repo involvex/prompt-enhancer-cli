@@ -51,6 +51,29 @@ async function throwOnError(response: Response): Promise<never> {
 	} catch {
 		// ignore
 	}
+
+	if (body) {
+		try {
+			const parsed = JSON.parse(body) as {
+				error?: {type?: string; message?: string; code?: number};
+				message?: string;
+			};
+			const errorMsg = parsed.error?.message ?? parsed.message;
+
+			if (response.status === 429) {
+				throw new Error(
+					`Kilo: Rate limited${errorMsg ? ` — ${errorMsg}` : ''}. Wait a moment or use a different model.`,
+				);
+			}
+
+			if (errorMsg) {
+				throw new Error(`Kilo error: ${errorMsg}`);
+			}
+		} catch (e) {
+			if (!(e instanceof SyntaxError)) throw e;
+		}
+	}
+
 	throw new Error(
 		`Kilo API error: ${response.status} ${response.statusText}${body ? ` — ${body}` : ''}`,
 	);
@@ -151,12 +174,19 @@ export class KiloProvider extends Provider {
 						if (data === '[DONE]') return;
 						try {
 							const parsed = JSON.parse(data) as {
-								choices: Array<{delta: {content?: string}}>;
+								choices?: Array<{delta: {content?: string}}>;
+								error?: {type?: string; message?: string; code?: number};
 							};
-							const content = parsed.choices[0]?.delta?.content;
+							if (parsed.error) {
+								const msg =
+									parsed.error.message ?? JSON.stringify(parsed.error);
+								throw new Error(`Kilo stream error: ${msg}`);
+							}
+							const content = parsed.choices?.[0]?.delta?.content;
 							if (content) yield content;
-						} catch {
-							// Ignore malformed SSE chunks
+						} catch (e) {
+							if (e instanceof SyntaxError) continue;
+							throw e;
 						}
 					}
 				}

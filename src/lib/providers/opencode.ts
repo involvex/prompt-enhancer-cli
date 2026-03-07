@@ -50,6 +50,36 @@ async function throwOnError(
 	} catch {
 		// ignore
 	}
+
+	if (body) {
+		try {
+			const parsed = JSON.parse(body) as {
+				error?: {type?: string; message?: string};
+				message?: string;
+			};
+			const errorType = parsed.error?.type;
+			const errorMsg = parsed.error?.message ?? parsed.message;
+
+			if (errorType === 'FreeUsageLimitError') {
+				throw new Error(
+					`${provider}: Free usage limit reached. Switch to a paid model or try a different provider.`,
+				);
+			}
+
+			if (response.status === 429) {
+				throw new Error(
+					`${provider}: Rate limited${errorMsg ? ` — ${errorMsg}` : ''}. Wait a moment or use a different model.`,
+				);
+			}
+
+			if (errorMsg) {
+				throw new Error(`${provider} error: ${errorMsg}`);
+			}
+		} catch (e) {
+			if (!(e instanceof SyntaxError)) throw e;
+		}
+	}
+
 	throw new Error(
 		`${provider} API error: ${response.status} ${response.statusText}${body ? ` — ${body}` : ''}`,
 	);
@@ -155,12 +185,25 @@ export class OpenCodeProvider extends Provider {
 						if (data === '[DONE]') return;
 						try {
 							const parsed = JSON.parse(data) as {
-								choices: Array<{delta: {content?: string}}>;
+								choices?: Array<{delta: {content?: string}}>;
+								error?: {type?: string; message?: string; code?: number};
 							};
-							const content = parsed.choices[0]?.delta?.content;
+							if (parsed.error) {
+								const msg =
+									parsed.error.message ?? JSON.stringify(parsed.error);
+								const type = parsed.error.type;
+								if (type === 'FreeUsageLimitError') {
+									throw new Error(
+										'OpenCode: Free usage limit reached. Switch to a paid model or try a different provider.',
+									);
+								}
+								throw new Error(`OpenCode stream error: ${msg}`);
+							}
+							const content = parsed.choices?.[0]?.delta?.content;
 							if (content) yield content;
-						} catch {
-							// Ignore malformed SSE chunks
+						} catch (e) {
+							if (e instanceof SyntaxError) continue;
+							throw e;
 						}
 					}
 				}
