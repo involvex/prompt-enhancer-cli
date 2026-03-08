@@ -30,7 +30,8 @@
 		"lint:fix": "eslint src --fix",
 		"typecheck": "tsc --noEmit",
 		"prebuild": "bun run format && bun run lint:fix && bun run typecheck",
-		"test": "prettier --check . && xo && ava",
+		"test": "prettier --check . && xo && bunx jest --config jest.config.cjs",
+		"test:jest": "bunx jest --config jest.config.cjs",
 		"changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
 		"compile": "bun run prebuild && bun build src/cli.tsx --compile --outfile dist/prompt-enhancer.exe",
 		"clean": "del-cli dist",
@@ -79,7 +80,14 @@
 		"ts-node": "^10.9.1",
 		"typescript": "^5.0.3",
 		"typescript-eslint": "latest",
-		"xo": "^0.53.1"
+		"xo": "^0.53.1",
+		"jest": "^29.6.1",
+		"ts-jest": "^29.1.0",
+		"@types/jest": "^29.5.3",
+		"jest-environment-jsdom": "^29.5.0",
+		"@testing-library/react": "^14.0.0",
+		"@testing-library/jest-dom": "^6.0.0",
+		"@testing-library/user-event": "^14.4.3"
 	},
 	"ava": {
 		"extensions": {

@@ -2,10 +2,10 @@
  * Enhancement engine - orchestrates prompt enhancement across providers
  */
 
-import {getProvider, type ProviderType} from '../providers/index.js';
-import {HistoryManager} from '../history/manager.js';
-import {ConfigManager} from '../config/manager.js';
-import type {EnhancementOptions} from '../types/index.js';
+import {getProvider, type ProviderType} from '../providers/index.ts';
+import {HistoryManager} from '../history/manager.ts';
+import {ConfigManager} from '../config/manager.ts';
+import type {EnhancementOptions} from '../types/index.ts';
 
 export interface EnhancementRequest {
 	prompt: string;
