@@ -1,7 +1,7 @@
 {
 	"extends": "@sindresorhus/tsconfig",
 	"compilerOptions": {
-		"rootDir": "src/",
+		"rootDir": ".",
 		"rootDirs": ["src/", "__tests__"],
 		"outDir": "dist",
 		"jsx": "react-jsx",
@@ -10,5 +10,6 @@
 		"rewriteRelativeImportExtensions": true,
 		"module": "NodeNext"
 	},
-	"include": ["src", "__tests__"]
+	"include": ["src"],
+	"exclude": ["__tests__"]
 }
