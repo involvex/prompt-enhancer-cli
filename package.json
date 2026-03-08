@@ -2,7 +2,7 @@
 	"name": "@involvex/prompt-enhancer",
 	"description": "A Cli to enhance your prompts",
 	"author": "involvex",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"license": "MIT",
 	"bin": {
 		"prompt-enhancer": "dist/cli.js"
