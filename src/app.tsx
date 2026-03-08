@@ -5,7 +5,13 @@ import EnhancePromptComponent from './components/enhance-prompt.js';
 import SettingsComponent from './components/settings.js';
 import HistoryComponent from './components/history-viewer.js';
 
-type AppState = 'menu' | 'enhance' | 'settings' | 'history' | 'help';
+type AppState =
+	| 'menu'
+	| 'enhance'
+	| 'enhance-clipboard'
+	| 'settings'
+	| 'history'
+	| 'help';
 
 interface Props {
 	prompt?: string;
@@ -16,6 +22,7 @@ export default function App({prompt: _prompt}: Props) {
 
 	const menuItems = [
 		{label: 'Enhance Prompt', value: 'enhance'},
+		{label: '📋 Enhance from clipboard', value: 'enhance-clipboard'},
 		{label: 'Settings', value: 'settings'},
 		{label: 'View History', value: 'history'},
 		{label: 'Help', value: 'help'},
@@ -55,6 +62,12 @@ export default function App({prompt: _prompt}: Props) {
 
 	if (state === 'enhance') {
 		return <EnhancePromptComponent onBack={() => setState('menu')} />;
+	}
+
+	if (state === 'enhance-clipboard') {
+		return (
+			<EnhancePromptComponent fromClipboard onBack={() => setState('menu')} />
+		);
 	}
 
 	if (state === 'settings') {

@@ -1,18 +1,26 @@
 import {useState, useEffect} from 'react';
-import {Box, Text} from 'ink';
+import {Box, Text, useInput} from 'ink';
 import TextInput from 'ink-text-input';
 import SelectInput from './select-input.js';
 import {ConfigManager} from '../lib/config/manager.js';
 import {HistoryManager} from '../lib/history/manager.js';
 import {EnhancementEngine} from '../lib/enhancement/engine.js';
 import type {ProviderType} from '../lib/providers/index.js';
-import {writeToClipboard} from '../lib/utils/clipboard.js';
+import {writeToClipboard, readFromClipboard} from '../lib/utils/clipboard.js';
 
 interface EnhancePromptProps {
 	onBack: () => void;
+	fromClipboard?: boolean;
 }
 
-type State = 'input' | 'enhancing' | 'complete' | 'preset-select' | 'error';
+type State =
+	| 'input'
+	| 'clipboard-loading'
+	| 'clipboard-preview'
+	| 'enhancing'
+	| 'complete'
+	| 'preset-select'
+	| 'error';
 type CompleteAction = 'copy' | 'enhance-further' | 'main-menu';
 type ErrorAction = 'retry' | 'main-menu';
 type PresetId = 'concise' | 'detailed' | 'structured' | 'coding';
@@ -54,8 +62,13 @@ function createPresetSystemPrompt(presetId: PresetId): string {
 	return `${DEFAULT_SYSTEM_PROMPT}\n\nAdditional enhancement direction:\n${preset.instruction}\n\nKeep your response as ONLY the improved prompt text.`;
 }
 
-export default function EnhancePrompt({onBack}: EnhancePromptProps) {
-	const [state, setState] = useState<State>('input');
+export default function EnhancePrompt({
+	onBack,
+	fromClipboard,
+}: EnhancePromptProps) {
+	const [state, setState] = useState<State>(
+		fromClipboard ? 'clipboard-loading' : 'input',
+	);
 	const [prompt, setPrompt] = useState('');
 	const [sourcePrompt, setSourcePrompt] = useState('');
 	const [enhancedText, setEnhancedText] = useState('');
@@ -83,6 +96,51 @@ export default function EnhancePrompt({onBack}: EnhancePromptProps) {
 			}
 		})();
 	}, []);
+
+	// Read clipboard when launched via "Enhance from clipboard" menu option
+	useEffect(() => {
+		if (!fromClipboard) return;
+		(async () => {
+			const result = await readFromClipboard();
+			if (result.success && result.text) {
+				setPrompt(result.text);
+				setState('clipboard-preview');
+			} else {
+				setError(result.message);
+				setState('error');
+			}
+		})();
+	}, [fromClipboard]);
+
+	// Ctrl+V: paste full clipboard content into the prompt input
+	useInput(
+		(_input, key) => {
+			if (key.ctrl && _input === 'v') {
+				void (async () => {
+					const result = await readFromClipboard();
+					if (result.success && result.text) {
+						setPrompt(result.text);
+						setStatusMessage('📋 Pasted from clipboard');
+					} else {
+						setStatusMessage(`Paste failed: ${result.message}`);
+					}
+				})();
+			}
+		},
+		{isActive: state === 'input'},
+	);
+
+	// clipboard-preview: Enter to enhance, Esc to cancel
+	useInput(
+		(_input, key) => {
+			if (key.return) {
+				void runEnhancement(prompt);
+			} else if (key.escape) {
+				onBack();
+			}
+		},
+		{isActive: state === 'clipboard-preview'},
+	);
 
 	const handleInputComplete = () => {
 		if (!prompt.trim()) {
@@ -188,6 +246,40 @@ export default function EnhancePrompt({onBack}: EnhancePromptProps) {
 		);
 	}
 
+	if (state === 'clipboard-loading') {
+		return (
+			<Box paddingX={2}>
+				<Text color="yellow">📋 Reading clipboard...</Text>
+			</Box>
+		);
+	}
+
+	if (state === 'clipboard-preview') {
+		const lines = prompt.split('\n');
+		const previewLines = lines.slice(0, 5);
+		const truncated = lines.length > 5;
+		return (
+			<Box flexDirection="column" paddingX={2}>
+				<Text bold color="cyan">
+					📋 Clipboard content ({lines.length} line
+					{lines.length === 1 ? '' : 's'}, {prompt.length} char
+					{prompt.length === 1 ? '' : 's'}):
+				</Text>
+				<Box marginY={1} flexDirection="column">
+					{previewLines.map((line, i) => (
+						<Text key={i} color="white">
+							{line || ' '}
+						</Text>
+					))}
+					{truncated && (
+						<Text color="gray">… ({lines.length - 5} more lines)</Text>
+					)}
+				</Box>
+				<Text color="gray">[Enter] Enhance · [Esc] Cancel</Text>
+			</Box>
+		);
+	}
+
 	if (state === 'input') {
 		return (
 			<Box flexDirection="column" paddingX={2}>
@@ -203,7 +295,13 @@ export default function EnhancePrompt({onBack}: EnhancePromptProps) {
 						placeholder="Type your prompt here..."
 					/>
 				</Box>
+				{statusMessage && (
+					<Text color={statusMessage.startsWith('📋') ? 'green' : 'red'}>
+						{statusMessage}
+					</Text>
+				)}
 				{error && <Text color="red">Error: {error}</Text>}
+				<Text color="gray">Tip: Press Ctrl+V to paste from clipboard</Text>
 			</Box>
 		);
 	}
