@@ -19,13 +19,13 @@
 ## Install
 
 ```bash
-npm install --global prompt-enhancer
+npm install --global @involvex/prompt-enhancer
 ```
 
 Or use directly:
 
 ```bash
-npx prompt-enhancer
+npx @involvex/prompt-enhancer
 ```
 
 ## Quick Start
