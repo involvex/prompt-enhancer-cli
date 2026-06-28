@@ -9,7 +9,7 @@
 		"isolatedModules": true,
 		"rewriteRelativeImportExtensions": true,
 		"module": "NodeNext",
-        "types": ["node"]
+		"types": ["node"]
 	},
 	"include": ["src"],
 	"exclude": ["__tests__"]
