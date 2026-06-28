@@ -6,12 +6,7 @@ import SettingsComponent from './components/settings.js';
 import HistoryComponent from './components/history-viewer.js';
 
 type AppState =
-	| 'menu'
-	| 'enhance'
-	| 'enhance-clipboard'
-	| 'settings'
-	| 'history'
-	| 'help';
+	'menu' | 'enhance' | 'enhance-clipboard' | 'settings' | 'history' | 'help';
 
 interface Props {
 	prompt?: string;

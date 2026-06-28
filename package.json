@@ -5,7 +5,7 @@
 	"version": "0.0.10",
 	"license": "MIT",
 	"bin": {
-		"prompt-enhancer": "dist/src/cli.js"
+		"prompt-enhancer": "dist/cli.js"
 	},
 	"type": "module",
 	"funding": {
@@ -23,7 +23,7 @@
 		"node": ">=16"
 	},
 	"scripts": {
-		"build": "tsc",
+		"build": "bun build src/cli.tsx --outdir dist --target node",
 		"dev": "bun run src/cli.tsx",
 		"format": "prettier --write .",
 		"lint": "eslint src",
@@ -35,7 +35,7 @@
 		"changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
 		"compile": "bun run prebuild && bun build src/cli.tsx --compile --outfile dist/prompt-enhancer.exe",
 		"clean": "del-cli dist",
-		"release": "bun run clean && powershell -File scripts/release.ps1"
+		"release": "bun run clean && pwsh -File scripts/release.ps1"
 	},
 	"files": [
 		"dist",
@@ -49,45 +49,46 @@
 		"@types/meow": "^6.0.0",
 		"del-cli": "^7.0.0",
 		"has-flag": "^5.0.1",
-		"ink": "^7.0.0",
+		"ink": "^7.1.0",
 		"ink-select-input": "^6.2.0",
 		"ink-text-input": "^6.0.0",
 		"meow": "^14.1.0",
-		"openai": "^6.34.0",
-		"react": "^19.2.5",
+		"openai": "^6.45.0",
+		"react": "^19.2.7",
 		"react-devtools-core": "^7.0.1",
-		"react-dom": "^19.2.5",
-		"zod": "^4.3.6"
+		"react-dom": "^19.2.7",
+		"zod": "^4.4.3"
 	},
 	"devDependencies": {
 		"@eslint/js": "latest",
 		"@sindresorhus/tsconfig": "^8.1.0",
-		"@types/react": "^19.2.14",
+		"@testing-library/jest-dom": "^6.0.0",
+		"@testing-library/react": "^14.0.0",
+		"@testing-library/user-event": "^14.4.3",
+		"@types/jest": "^29.5.3",
+		"@types/node": "^26.0.1",
+		"@types/react": "^19.2.17",
 		"@vdemedes/prettier-config": "^2.0.1",
 		"ava": "^5.2.0",
 		"chalk": "^5.2.0",
 		"conventional-changelog-cli": "^5.0.0",
-		"eslint": "10.2.0",
+		"eslint": "10.6.0",
 		"eslint-config-xo-react": "^0.29.0",
 		"eslint-plugin-react": "^7.32.2",
-		"eslint-plugin-react-hooks": "^7.1.0",
+		"eslint-plugin-react-hooks": "^7.1.1",
 		"ink-testing-library": "^4.0.0",
-		"jiti": "latest",
-		"prettier": "3.8.3",
+		"jest": "^29.6.1",
+		"jest-environment-jsdom": "^29.5.0",
+		"jiti": "2.7.0",
+		"prettier": "3.9.1",
 		"prettier-plugin-organize-imports": "^4.3.0",
 		"prettier-plugin-packagejson": "^3.0.0",
 		"prettier-plugin-sort-imports": "^1.8.10",
+		"ts-jest": "^29.4.9",
 		"ts-node": "^10.9.1",
 		"typescript": "^6.0.3",
-		"typescript-eslint": "8.58.2",
-		"xo": "^0.53.1",
-		"jest": "^29.6.1",
-		"ts-jest": "^29.4.9",
-		"@types/jest": "^29.5.3",
-		"jest-environment-jsdom": "^29.5.0",
-		"@testing-library/react": "^14.0.0",
-		"@testing-library/jest-dom": "^6.0.0",
-		"@testing-library/user-event": "^14.4.3"
+		"typescript-eslint": "8.62.0",
+		"xo": "^0.53.1"
 	},
 	"ava": {
 		"extensions": {
